@@ -1,0 +1,110 @@
+name: Build Release Zip
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build and release
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore Source/NoCavesContinued.csproj
+
+      - name: Build
+        run: dotnet build Source/NoCavesContinued.csproj -c Release --no-restore
+
+      - name: Package mod
+        id: package
+        shell: pwsh
+        run: |
+          $packageRoot = Join-Path $env:RUNNER_TEMP "package"
+          $modRoot = Join-Path $packageRoot "NoCavesContinued"
+          $zipPath = Join-Path $PWD "NoCavesContinued-${{ github.run_number }}.zip"
+
+          New-Item -ItemType Directory -Path $modRoot -Force | Out-Null
+          Copy-Item -Path "About" -Destination $modRoot -Recurse
+          Copy-Item -Path "1.6" -Destination $modRoot -Recurse
+          Copy-Item -Path "LoadFolders.xml" -Destination $modRoot
+          Copy-Item -Path "README.md" -Destination $modRoot
+
+          if (Test-Path $zipPath) {
+            Remove-Item $zipPath -Force
+          }
+
+          Compress-Archive -Path $modRoot -DestinationPath $zipPath -CompressionLevel Optimal
+
+          "zip_path=$zipPath" >> $env:GITHUB_OUTPUT
+          "zip_name=$(Split-Path $zipPath -Leaf)" >> $env:GITHUB_OUTPUT
+
+      - name: Validate package
+        shell: pwsh
+        run: |
+          $zipPath = "${{ steps.package.outputs.zip_path }}"
+          $extractRoot = Join-Path $env:RUNNER_TEMP "package-validation"
+
+          Expand-Archive -Path $zipPath -DestinationPath $extractRoot -Force
+
+          $requiredPaths = @(
+            "NoCavesContinued/About/About.xml",
+            "NoCavesContinued/LoadFolders.xml",
+            "NoCavesContinued/1.6/Assemblies/NoCavesContinued.dll",
+            "NoCavesContinued/README.md"
+          )
+
+          foreach ($path in $requiredPaths) {
+            $fullPath = Join-Path $extractRoot $path
+            if (-not (Test-Path $fullPath)) {
+              throw "Release zip is missing required file: $path"
+            }
+          }
+
+          $forbiddenPaths = @(
+            "NoCavesContinued/.git",
+            "NoCavesContinued/.github",
+            "NoCavesContinued/Source",
+            "NoCavesContinued/AGENTS.md"
+          )
+
+          foreach ($path in $forbiddenPaths) {
+            $fullPath = Join-Path $extractRoot $path
+            if (Test-Path $fullPath) {
+              throw "Release zip includes non-distribution path: $path"
+            }
+          }
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoCavesContinued
+          path: ${{ steps.package.outputs.zip_path }}
+          if-no-files-found: error
+
+      - name: Create GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "build-${{ github.run_number }}"
+          $title = "No Caves - Continued build ${{ github.run_number }}"
+          $notes = "Automated release from main branch commit $env:GITHUB_SHA."
+
+          gh release create $tag "${{ steps.package.outputs.zip_path }}" `
+            --target $env:GITHUB_SHA `
+            --title $title `
+            --notes $notes `
+            --latest
