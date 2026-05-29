@@ -1,0 +1,12 @@
+.DS_Store
+
+# Build intermediates
+**/bin/
+**/obj/
+
+# IDE/user-local files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
