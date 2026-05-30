@@ -9,6 +9,7 @@
     <OutputPath>../1.6/Assemblies/</OutputPath>
     <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
+    <SuppressImplicitGitSourceLink>true</SuppressImplicitGitSourceLink>
   </PropertyGroup>
 
   <ItemGroup>
