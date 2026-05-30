@@ -8,6 +8,7 @@ Use it when you want mountainous or impassable-map starts without the normal van
 
 - Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=TODO
 - GitHub: https://github.com/sayhiben/NoCavesContinued
+- Original NoCaves by kd8lvt: https://steamcommunity.com/sharedfiles/filedetails/?id=2898003040
 
 ## Requirements
 
@@ -33,6 +34,14 @@ This mod affects newly generated maps. Existing colony maps are not changed.
 On a mountainous or impassable tile that would normally contain vanilla caves, the map should generate without those vanilla cave tunnels.
 
 The mod is intentionally narrow. It does not try to remove every cave-like feature from every mod, and it does not intentionally change mountains, ores, ruins, rivers, roads, terrain, or other modded map features.
+
+## Credits And Continuation
+
+This mod is a continuation inspired by [NoCaves](https://steamcommunity.com/sharedfiles/filedetails/?id=2898003040), created and maintained by kd8lvt.
+
+Credit for the original idea, player-facing design, and stewardship of the mod belongs to kd8lvt. Their Workshop page describes NoCaves as a simple Harmony patch that prevents cave generation, and their 1.6 maintenance note explained that they were stepping away from active support while giving permission for others to carry the work forward.
+
+No Caves - Continued exists to preserve that behavior for RimWorld 1.6 and continue the path kd8lvt opened. This is not intended to erase or replace their contribution; it is meant to keep their useful mod available for current RimWorld players.
 
 ## Safe To Add Or Remove
 

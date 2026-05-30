@@ -17,5 +17,5 @@
   <loadAfter>
     <li>brrainz.harmony</li>
   </loadAfter>
-  <description>Prevents RimWorld's vanilla cave generation step from carving cave tunnels during map generation.</description>
+  <description>Prevents RimWorld's vanilla cave generation step from carving cave tunnels during map generation. Continued for RimWorld 1.6 in respect of kd8lvt's original NoCaves mod and maintenance handoff.</description>
 </ModMetaData>
