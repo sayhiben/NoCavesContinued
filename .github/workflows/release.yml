@@ -28,6 +28,19 @@ jobs:
       - name: Build
         run: dotnet build Source/NoCavesContinued.csproj -c Release --no-restore
 
+      - name: Generate Steam Workshop description
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          python3 -m venv "$RUNNER_TEMP/md2steam-venv"
+          "$RUNNER_TEMP/md2steam-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/md2steam-venv/bin/python" -m pip install md2steam==1.0.1
+          "$RUNNER_TEMP/md2steam-venv/bin/python" \
+            scripts/generate-steam-workshop-description.py \
+            README.md \
+            "$RUNNER_TEMP/SteamWorkshopDescription.txt"
+
       - name: Package mod
         id: package
         shell: bash
@@ -45,6 +58,7 @@ jobs:
           cp -R 1.6 "$mod_root/"
           cp LoadFolders.xml "$mod_root/"
           cp README.md "$mod_root/"
+          cp "$RUNNER_TEMP/SteamWorkshopDescription.txt" "$mod_root/"
 
           (
             cd "$package_root"
@@ -73,6 +87,7 @@ jobs:
             "NoCavesContinued/LoadFolders.xml"
             "NoCavesContinued/1.6/Assemblies/NoCavesContinued.dll"
             "NoCavesContinued/README.md"
+            "NoCavesContinued/SteamWorkshopDescription.txt"
           )
 
           for path in "${required_paths[@]}"; do

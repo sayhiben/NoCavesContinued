@@ -21,6 +21,8 @@ TestResults/
 # Local packages and caches
 packages/
 .nuget/
+__pycache__/
+*.py[cod]
 
 # Logs and crash dumps
 *.log

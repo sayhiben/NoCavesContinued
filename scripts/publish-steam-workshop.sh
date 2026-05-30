@@ -37,6 +37,8 @@ Common options:
   --visibility VALUE        public, friends, private, unlisted, or numeric 0-3.
   --title TEXT              Update the Workshop title.
   --description-file PATH   Update the Workshop description from this file.
+                            Defaults to SteamWorkshopDescription.txt from the
+                            latest GitHub release when present.
   --steamcmd PATH           SteamCMD executable. May also be set with STEAMCMD.
   --repo OWNER/REPO         GitHub repository. Defaults to sayhiben/NoCavesContinued.
   --dry-run                 Download, stage, and print the VDF/command only.
@@ -265,6 +267,10 @@ elif [[ -f "$mod_root/About/Preview.png" ]]; then
   preview_for_vdf="$mod_root/About/Preview.png"
 else
   echo "warning: no Preview.png found; the VDF will not update the Workshop preview image" >&2
+fi
+
+if [[ -z "$description_file" && -f "$mod_root/SteamWorkshopDescription.txt" ]]; then
+  description_file="$mod_root/SteamWorkshopDescription.txt"
 fi
 
 description=""

@@ -33,6 +33,9 @@ Source/NoCavesContinued/NoCavesContinued.cs
 scripts/publish-steam-workshop.sh
   Local helper for staging the latest GitHub release zip and publishing it with SteamCMD.
 
+scripts/generate-steam-workshop-description.py
+  Converts Steam-facing README sections from Markdown to Steam BBCode.
+
 Source/obj/
   Generated build intermediates. Do not edit by hand.
 ```
@@ -45,6 +48,7 @@ Source/obj/
 - RimWorld 1.6 and Harmony for runtime verification.
 - `zip` and `unzip` only if validating release packages locally; normal local builds do not need them.
 - `gh`, `unzip`, and SteamCMD for local Steam Workshop publishing with `scripts/publish-steam-workshop.sh`.
+- Python 3.10+ and `md2steam==1.0.1` for local Steam Workshop description generation.
 
 The project targets `net472`, but the required .NET Framework reference assemblies are restored from NuGet. Do not require a Windows runner or local .NET Framework install for ordinary builds.
 
@@ -109,6 +113,7 @@ If patching fails, inspect the diagnostic log emitted by the mod. It lists loade
 - Avoid unrelated formatting churn in XML or C# files.
 - Use concise comments only where they explain RimWorld/Harmony behavior that is not obvious from the code.
 - Do not add Steam credentials to GitHub Actions. Steam Workshop publishing should stay local/manual unless the user explicitly chooses a secured publishing setup.
+- Do not hand-roll Markdown-to-Steam-BBCode conversion unless `md2steam` stops meeting the repository's needs.
 
 ## Release Checklist
 

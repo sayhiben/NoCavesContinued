@@ -104,6 +104,12 @@ For in-game testing:
 
 For release-package checks outside GitHub Actions, `zip` and `unzip` are useful but not required for normal local builds.
 
+For Steam Workshop description generation, install Python 3.10 or newer and:
+
+```bash
+python3 -m pip install md2steam==1.0.1
+```
+
 ## Build
 
 From the `Source` directory:
@@ -125,6 +131,8 @@ Expected output:
 1.6/Assemblies/NoCavesContinued.dll
 1.6/Assemblies/NoCavesContinued.pdb
 ```
+
+The GitHub release workflow also generates `SteamWorkshopDescription.txt` from the Steam-facing sections of `README.md`. It converts Markdown to Steam BBCode using `md2steam`.
 
 ## Development Test
 
@@ -168,12 +176,12 @@ scripts/publish-steam-workshop.sh \
   --changenote "Update from latest tested GitHub release"
 ```
 
-The script requires `gh`, `unzip`, and [SteamCMD](https://developer.valvesoftware.com/wiki/SteamCMD) and must be run manually by someone with write access to the Workshop page.
+The script requires `gh`, `unzip`, and [SteamCMD](https://developer.valvesoftware.com/wiki/SteamCMD) and must be run manually by someone with write access to the Workshop page. If the latest GitHub release includes `SteamWorkshopDescription.txt`, the script uses it as the Workshop description by default.
 
 Useful options:
 
 - `--preview-file path/to/Preview.png` copies a preview image into the staged mod and updates the Workshop preview.
 - `--visibility private|unlisted|friends|public` updates Workshop visibility.
 - `--title "No Caves - Continued"` updates the Workshop title.
-- `--description-file path/to/description.txt` updates the Workshop description.
+- `--description-file path/to/description.txt` overrides the generated Workshop description.
 - `--keep-workdir` leaves the staged mod folder and generated VDF on disk for inspection.
