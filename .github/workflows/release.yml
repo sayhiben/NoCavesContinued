@@ -96,13 +96,6 @@ jobs:
             fi
           done
 
-      - name: Upload package artifact
-        uses: actions/upload-artifact@v5
-        with:
-          name: NoCavesContinued
-          path: ${{ steps.package.outputs.zip_path }}
-          if-no-files-found: error
-
       - name: Create GitHub release
         shell: bash
         env:
