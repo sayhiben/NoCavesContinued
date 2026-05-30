@@ -1,6 +1,6 @@
 # No Caves - Continued
 
-No Caves - Continued prevents RimWorld's vanilla cave tunnels from being carved into newly generated colony maps.
+**No Caves - Continued** prevents RimWorld's vanilla cave tunnels from being carved into newly generated colony maps.
 
 Use it when you want mountainous or impassable-map starts without the normal vanilla cave networks.
 
