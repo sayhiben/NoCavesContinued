@@ -30,6 +30,9 @@ Source/NoCavesContinued.csproj
 Source/NoCavesContinued/NoCavesContinued.cs
   The full runtime implementation.
 
+scripts/publish-steam-workshop.sh
+  Local helper for staging the latest GitHub release zip and publishing it with SteamCMD.
+
 Source/obj/
   Generated build intermediates. Do not edit by hand.
 ```
@@ -41,6 +44,7 @@ Source/obj/
 - Network access for `dotnet restore`.
 - RimWorld 1.6 and Harmony for runtime verification.
 - `zip` and `unzip` only if validating release packages locally; normal local builds do not need them.
+- `gh`, `unzip`, and SteamCMD for local Steam Workshop publishing with `scripts/publish-steam-workshop.sh`.
 
 The project targets `net472`, but the required .NET Framework reference assemblies are restored from NuGet. Do not require a Windows runner or local .NET Framework install for ordinary builds.
 
@@ -104,6 +108,7 @@ If patching fails, inspect the diagnostic log emitted by the mod. It lists loade
 - Preserve the simple C# style already present: block-scoped namespace, explicit helper methods, and clear log messages.
 - Avoid unrelated formatting churn in XML or C# files.
 - Use concise comments only where they explain RimWorld/Harmony behavior that is not obvious from the code.
+- Do not add Steam credentials to GitHub Actions. Steam Workshop publishing should stay local/manual unless the user explicitly chooses a secured publishing setup.
 
 ## Release Checklist
 

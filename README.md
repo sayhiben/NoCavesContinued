@@ -130,3 +130,45 @@ dotnet build Source/NoCavesContinued.csproj -c Release
 ```
 
 For behavior changes, test in RimWorld by generating a new mountainous or impassable map and checking both the generated terrain and RimWorld log.
+
+## Steam Workshop Publishing
+
+The GitHub release workflow produces the zip used for Steam publishing. Publish to Steam manually from a local machine; do not put Steam credentials in GitHub Actions.
+
+Recommended first upload:
+
+1. Add `About/Preview.png` before publishing. RimWorld recommends a `640x360` PNG under `1 MB`.
+2. Download and extract the latest GitHub release zip.
+3. Copy the extracted `NoCavesContinued` folder into RimWorld's local `Mods` folder.
+4. Launch RimWorld through Steam, enable dev mode, and use the in-game Steam Workshop upload flow.
+5. Keep the new Workshop item hidden/private until a subscribed clean install has been tested.
+6. Save the generated Workshop item ID from `About/PublishedFileId.txt`.
+
+After the first upload exists, the local helper script can update that same Workshop item from the latest GitHub release:
+
+```bash
+STEAM_USERNAME=your_steam_username \
+scripts/publish-steam-workshop.sh \
+  --published-file-id 1234567890 \
+  --changenote "Update from latest tested GitHub release" \
+  --dry-run
+```
+
+Remove `--dry-run` when the generated VDF looks correct:
+
+```bash
+STEAM_USERNAME=your_steam_username \
+scripts/publish-steam-workshop.sh \
+  --published-file-id 1234567890 \
+  --changenote "Update from latest tested GitHub release"
+```
+
+The script requires `gh`, `unzip`, and SteamCMD. It intentionally does not accept a Steam password; SteamCMD should prompt locally or use its trusted local login after you approve Steam Guard.
+
+Useful options:
+
+- `--preview-file path/to/Preview.png` copies a preview image into the staged mod and updates the Workshop preview.
+- `--visibility private|unlisted|friends|public` updates Workshop visibility.
+- `--title "No Caves - Continued"` updates the Workshop title.
+- `--description-file path/to/description.txt` updates the Workshop description.
+- `--keep-workdir` leaves the staged mod folder and generated VDF on disk for inspection.
