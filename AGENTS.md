@@ -34,6 +34,16 @@ Source/obj/
   Generated build intermediates. Do not edit by hand.
 ```
 
+## Prerequisites
+
+- Git.
+- .NET SDK 8.0 or newer.
+- Network access for `dotnet restore`.
+- RimWorld 1.6 and Harmony for runtime verification.
+- `zip` and `unzip` only if validating release packages locally; normal local builds do not need them.
+
+The project targets `net472`, but the required .NET Framework reference assemblies are restored from NuGet. Do not require a Windows runner or local .NET Framework install for ordinary builds.
+
 ## Build
 
 Build from the `Source` directory:

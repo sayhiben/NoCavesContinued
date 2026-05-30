@@ -82,6 +82,23 @@ The compiled RimWorld assembly is written directly to:
 
 Generated build files under `Source/obj/` should not be edited by hand.
 
+## Development Prerequisites
+
+For compile-only development:
+
+- Git
+- .NET SDK 8.0 or newer
+- Network access for `dotnet restore`
+
+The project targets `net472` for RimWorld compatibility. The required .NET Framework reference assemblies are restored from NuGet; a local Windows/.NET Framework install is not required.
+
+For in-game testing:
+
+- RimWorld 1.6
+- Harmony loaded before No Caves - Continued
+
+For release-package checks outside GitHub Actions, `zip` and `unzip` are useful but not required for normal local builds.
+
 ## Build
 
 From the `Source` directory:
