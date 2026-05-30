@@ -1,8 +1,13 @@
+# macOS / OS metadata
 .DS_Store
+._*
+Thumbs.db
+Desktop.ini
 
-# Build intermediates
+# .NET build intermediates
 **/bin/
 **/obj/
+TestResults/
 
 # IDE/user-local files
 .vs/
@@ -10,3 +15,21 @@
 .idea/
 *.user
 *.suo
+*.userosscache
+*.sln.docstates
+
+# Local packages and caches
+packages/
+.nuget/
+
+# Logs and crash dumps
+*.log
+*.dmp
+*.tmp
+
+# Locally generated release packages
+*.zip
+*.tar
+*.tar.gz
+
+# Keep RimWorld distribution assemblies tracked under 1.6/Assemblies/.
