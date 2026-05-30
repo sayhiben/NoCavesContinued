@@ -33,8 +33,6 @@ This mod affects newly generated maps. Existing colony maps are not changed.
 
 On a mountainous or impassable tile that would normally contain vanilla caves, the map should generate without those vanilla cave tunnels.
 
-To match the original NoCaves behavior, this mod also makes RimWorld's vanilla cave-map check report that the map does not have caves. That suppresses vanilla cave-only extras that depend on that check, such as cave debris or ancient cave turret scatterers.
-
 ## Credits And Continuation
 
 This mod is a continuation inspired by [NoCaves](https://steamcommunity.com/sharedfiles/filedetails/?id=2898003040), created and maintained by kd8lvt.
