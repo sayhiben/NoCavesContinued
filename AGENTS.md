@@ -6,13 +6,11 @@ Guidance for coding agents working in this repository.
 
 No Caves - Continued is a small RimWorld 1.6 Harmony mod. Its purpose is to prevent vanilla cave tunnel generation during map generation.
 
-The current implementation patches RimWorld cave-generation methods with a Harmony prefix that returns `false`, which skips the original method. The main RimWorld 1.6 target is:
+The current implementation patches RimWorld's cave-generation utility with a Harmony prefix that returns `false`, which skips the original method. The RimWorld 1.6 target is:
 
 ```text
 RimWorld.MapGenCavesUtility.GenerateCaves
 ```
-
-Older or alternate cave-generation targets are patched opportunistically when those types exist.
 
 ## Repository Layout
 
@@ -59,7 +57,7 @@ The project targets `net472` for RimWorld/Unity compatibility. Keep the build ou
 At minimum, run:
 
 ```bash
-dotnet build -c Release
+dotnet build Source/NoCavesContinued.csproj -c Release
 ```
 
 There is no automated test harness in this repository. Runtime verification requires RimWorld:
@@ -81,9 +79,8 @@ If patching fails, inspect the diagnostic log emitted by the mod. It lists loade
 - `Bootstrap` is marked with `Verse.StaticConstructorOnStartup`, so RimWorld runs its static constructor when the mod assembly loads.
 - The Harmony ID is `sayhiben.nocavescontinued`; keep it stable unless intentionally creating a distinct mod identity.
 - Patch targets are resolved by string name through `HarmonyLib.AccessTools`. This avoids compile-time references to RimWorld internal types that may be absent from public reference assemblies.
-- The required modern target is `RimWorld.MapGenCavesUtility.GenerateCaves`.
-- `RimWorld.GenStep_Caves.Generate` and `RimWorld.GenStep_CavesTerrain.Generate` are optional legacy targets.
-- The patch intentionally applies to every declared overload matching the configured method name.
+- The target is `RimWorld.MapGenCavesUtility.GenerateCaves`.
+- The patch intentionally applies to every declared overload matching `GenerateCaves`.
 - The prefix method should stay minimal. Returning `false` is the behavior that skips cave generation.
 - Keep the failure diagnostics useful. If targets change, preserve or improve the cave-type discovery output instead of replacing it with a generic error.
 
@@ -107,4 +104,3 @@ Before considering a change complete:
 3. Run `dotnet build -c Release` from `Source`.
 4. Confirm the built DLL is present under `1.6/Assemblies/`.
 5. For behavior changes, verify in RimWorld using a cave-prone map tile and inspect the game log.
-
