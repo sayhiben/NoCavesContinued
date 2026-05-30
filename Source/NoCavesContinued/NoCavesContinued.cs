@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HarmonyLib;
@@ -11,41 +10,15 @@ namespace NoCavesContinued
     public static class Bootstrap
     {
         private const string HarmonyId = "sayhiben.nocavescontinued";
-        private const string CaveGenerationTargetTypeName = "RimWorld.MapGenCavesUtility";
-        private const string CaveGenerationTargetMethodName = "GenerateCaves";
-        private const string CaveCheckTargetTypeName = "RimWorld.Planet.World";
-        private const string CaveCheckTargetMethodName = "HasCaves";
 
         static Bootstrap()
         {
             Harmony harmony = new Harmony(HarmonyId);
-            MethodInfo skipCaveGenerationPrefixMethod = AccessTools.Method(typeof(Bootstrap), nameof(SkipCaveGeneration));
-            MethodInfo reportNoCavesPrefixMethod = AccessTools.Method(typeof(Bootstrap), nameof(ReportNoCaves));
-
-            if (skipCaveGenerationPrefixMethod == null)
-            {
-                Log.Error("[No Caves - Continued] Could not find prefix method. Cave generation was not patched.");
-            }
-            else
-            {
-                PatchCaveGeneration(harmony, skipCaveGenerationPrefixMethod);
-            }
-
-            if (reportNoCavesPrefixMethod == null)
-            {
-                Log.Error("[No Caves - Continued] Could not find cave-check prefix method. Cave checks were not patched.");
-            }
-            else
-            {
-                PatchCaveChecks(harmony, reportNoCavesPrefixMethod);
-            }
+            Patch(harmony, "RimWorld.MapGenCavesUtility", "GenerateCaves", nameof(SkipCaveGeneration));
+            Patch(harmony, "RimWorld.Planet.World", "HasCaves", nameof(ReportNoCaves));
         }
 
-        public static bool SkipCaveGeneration()
-        {
-            // Returning false from a Harmony prefix skips the original method.
-            return false;
-        }
+        public static bool SkipCaveGeneration() => false;
 
         public static bool ReportNoCaves(ref bool __result)
         {
@@ -53,64 +26,34 @@ namespace NoCavesContinued
             return false;
         }
 
-        private static void PatchCaveGeneration(Harmony harmony, MethodInfo prefixMethod)
+        private static void Patch(Harmony harmony, string targetTypeName, string targetMethodName, string prefixMethodName)
         {
-            Type targetType = AccessTools.TypeByName(CaveGenerationTargetTypeName);
+            Type targetType = AccessTools.TypeByName(targetTypeName);
             if (targetType == null)
             {
-                Log.Error(
-                    $"[No Caves - Continued] Could not find {CaveGenerationTargetTypeName}. " +
-                    DescribeDiscoveredCaveTypesAndMethods());
+                Log.Error($"[No Caves - Continued] Could not find {targetTypeName}.{targetMethodName}. Nothing was patched.");
+                LogCaveDiagnostics();
                 return;
             }
 
-            List<MethodInfo> targetMethods = AccessTools.GetDeclaredMethods(targetType)
-                .Where(method => method.Name == CaveGenerationTargetMethodName)
-                .ToList();
-
-            if (targetMethods.Count == 0)
+            MethodInfo prefixMethod = AccessTools.Method(typeof(Bootstrap), prefixMethodName);
+            MethodInfo[] targetMethods = AccessTools.GetDeclaredMethods(targetType)
+                .Where(method => method.Name == targetMethodName)
+                .ToArray();
+            if (targetMethods.Length == 0)
             {
-                Log.Error(
-                    $"[No Caves - Continued] Could not find {CaveGenerationTargetTypeName}.{CaveGenerationTargetMethodName}. " +
-                    DescribeDiscoveredCaveTypesAndMethods());
+                Log.Error($"[No Caves - Continued] Could not find {targetTypeName}.{targetMethodName}. Nothing was patched.");
+                LogCaveDiagnostics();
                 return;
             }
 
             foreach (MethodInfo targetMethod in targetMethods)
             {
                 harmony.Patch(targetMethod, prefix: new HarmonyMethod(prefixMethod));
-                Log.Message($"[No Caves - Continued] Patched {DescribeMethod(targetMethod)}; cave generation will be skipped.");
+                Log.Message($"[No Caves - Continued] Patched {DescribeMethod(targetMethod)} with {prefixMethod.Name}.");
             }
 
-            Log.Message($"[No Caves - Continued] Finished patching {targetMethods.Count} cave-generation method(s).");
-        }
-
-        private static void PatchCaveChecks(Harmony harmony, MethodInfo prefixMethod)
-        {
-            Type targetType = AccessTools.TypeByName(CaveCheckTargetTypeName);
-            if (targetType == null)
-            {
-                Log.Error($"[No Caves - Continued] Could not find {CaveCheckTargetTypeName}. Cave checks were not patched.");
-                return;
-            }
-
-            List<MethodInfo> targetMethods = AccessTools.GetDeclaredMethods(targetType)
-                .Where(method => method.Name == CaveCheckTargetMethodName)
-                .ToList();
-
-            if (targetMethods.Count == 0)
-            {
-                Log.Error($"[No Caves - Continued] Could not find {CaveCheckTargetTypeName}.{CaveCheckTargetMethodName}. Cave checks were not patched.");
-                return;
-            }
-
-            foreach (MethodInfo targetMethod in targetMethods)
-            {
-                harmony.Patch(targetMethod, prefix: new HarmonyMethod(prefixMethod));
-                Log.Message($"[No Caves - Continued] Patched {DescribeMethod(targetMethod)}; cave checks will report false.");
-            }
-
-            Log.Message($"[No Caves - Continued] Finished patching {targetMethods.Count} cave-check method(s).");
+            Log.Message($"[No Caves - Continued] Finished patching {targetMethods.Length} {targetTypeName}.{targetMethodName} method(s).");
         }
 
         private static string DescribeMethod(MethodInfo method)
@@ -122,56 +65,48 @@ namespace NoCavesContinued
             return $"{method.DeclaringType.FullName}.{method.Name}({parameterList})";
         }
 
-        private static string DescribeDiscoveredCaveTypesAndMethods()
+        private static void LogCaveDiagnostics()
         {
-            List<string> caveTypeDescriptions = GetLoadedTypes()
+            string[] caveTypeDescriptions = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(GetTypes)
                 .Where(type => type.FullName != null && type.FullName.IndexOf("Cave", StringComparison.OrdinalIgnoreCase) >= 0)
                 .OrderBy(type => type.FullName)
                 .Take(50)
                 .Select(type =>
                 {
-                    List<string> methodNames = AccessTools.GetDeclaredMethods(type)
+                    string[] methodNames = AccessTools.GetDeclaredMethods(type)
                         .Select(method => method.Name)
                         .Distinct()
                         .OrderBy(methodName => methodName)
                         .Take(20)
-                        .ToList();
+                        .ToArray();
 
                     return type.FullName + " methods=[" + string.Join(", ", methodNames) + "]";
                 })
-                .ToList();
+                .ToArray();
 
-            if (caveTypeDescriptions.Count == 0)
+            if (caveTypeDescriptions.Length == 0)
             {
-                return "No loaded types with 'Cave' in the name were found.";
+                Log.Error("[No Caves - Continued] No loaded types with 'Cave' in the name were found.");
+                return;
             }
 
-            return "Loaded cave-related types: " + string.Join("; ", caveTypeDescriptions);
+            Log.Error("[No Caves - Continued] Loaded cave-related types: " + string.Join("; ", caveTypeDescriptions));
         }
 
-        private static IEnumerable<Type> GetLoadedTypes()
+        private static Type[] GetTypes(Assembly assembly)
         {
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            try
             {
-                Type[] types;
-
-                try
-                {
-                    types = assembly.GetTypes();
-                }
-                catch (ReflectionTypeLoadException exception)
-                {
-                    types = exception.Types.Where(type => type != null).ToArray();
-                }
-                catch
-                {
-                    continue;
-                }
-
-                foreach (Type type in types)
-                {
-                    yield return type;
-                }
+                return assembly.GetTypes();
+            }
+            catch (ReflectionTypeLoadException exception)
+            {
+                return exception.Types.Where(type => type != null).ToArray();
+            }
+            catch
+            {
+                return new Type[0];
             }
         }
     }
