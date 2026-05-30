@@ -6,7 +6,7 @@ Use it when you want mountainous or impassable-map starts without the normal van
 
 ## Links
 
-- Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=TODO
+- Steam Workshop: https://steamcommunity.com/sharedfiles/filedetails/?id=3735336239
 - GitHub: https://github.com/sayhiben/NoCavesContinued
 - Original NoCaves by kd8lvt: https://steamcommunity.com/sharedfiles/filedetails/?id=2898003040
 
