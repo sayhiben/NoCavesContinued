@@ -106,13 +106,14 @@ vdf_escape() {
   value=${value//\\/\\\\}
   value=${value//\"/\\\"}
   value=${value//$'\r'/}
-  value=${value//$'\n'/\\n}
   printf '%s' "$value"
 }
 
 write_vdf_entry() {
   local key="$1"
   local value="$2"
+  # Keep real LF characters in multiline values. Steam Workshop renders
+  # backslash-n sequences literally in item descriptions.
   printf '\t"%s" "%s"\n' "$key" "$(vdf_escape "$value")"
 }
 

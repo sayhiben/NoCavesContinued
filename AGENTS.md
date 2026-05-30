@@ -188,6 +188,8 @@ scripts/publish-steam-workshop.sh \
 
 Remove `--dry-run` after inspecting the generated VDF. The helper downloads the latest GitHub release zip with `gh`, stages the mod, writes `About/PublishedFileId.txt` into the staged copy, uses `SteamWorkshopDescription.txt` from the release by default, and calls SteamCMD. It intentionally does not accept or store a Steam password; SteamCMD should prompt or use local trusted login/Steam Guard state.
 
+When writing SteamCMD VDF metadata, preserve real newline characters inside multiline values. Do not convert description newlines to `\n`; Steam Workshop renders those sequences literally on the page.
+
 ## Editing Guidelines
 
 - Keep changes narrowly scoped. This mod has one job: skip vanilla cave generation.
