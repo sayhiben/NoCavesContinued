@@ -11,37 +11,67 @@ namespace NoCavesContinued
     public static class Bootstrap
     {
         private const string HarmonyId = "sayhiben.nocavescontinued";
-        private const string TargetTypeName = "RimWorld.MapGenCavesUtility";
-        private const string TargetMethodName = "GenerateCaves";
+        private const string CaveGenerationTargetTypeName = "RimWorld.MapGenCavesUtility";
+        private const string CaveGenerationTargetMethodName = "GenerateCaves";
+        private const string CaveCheckTargetTypeName = "RimWorld.Planet.World";
+        private const string CaveCheckTargetMethodName = "HasCaves";
 
         static Bootstrap()
         {
             Harmony harmony = new Harmony(HarmonyId);
-            MethodInfo prefixMethod = AccessTools.Method(typeof(Bootstrap), nameof(SkipCaveGeneration));
+            MethodInfo skipCaveGenerationPrefixMethod = AccessTools.Method(typeof(Bootstrap), nameof(SkipCaveGeneration));
+            MethodInfo reportNoCavesPrefixMethod = AccessTools.Method(typeof(Bootstrap), nameof(ReportNoCaves));
 
-            if (prefixMethod == null)
+            if (skipCaveGenerationPrefixMethod == null)
             {
                 Log.Error("[No Caves - Continued] Could not find prefix method. Cave generation was not patched.");
-                return;
+            }
+            else
+            {
+                PatchCaveGeneration(harmony, skipCaveGenerationPrefixMethod);
             }
 
-            Type targetType = AccessTools.TypeByName(TargetTypeName);
+            if (reportNoCavesPrefixMethod == null)
+            {
+                Log.Error("[No Caves - Continued] Could not find cave-check prefix method. Cave checks were not patched.");
+            }
+            else
+            {
+                PatchCaveChecks(harmony, reportNoCavesPrefixMethod);
+            }
+        }
+
+        public static bool SkipCaveGeneration()
+        {
+            // Returning false from a Harmony prefix skips the original method.
+            return false;
+        }
+
+        public static bool ReportNoCaves(ref bool __result)
+        {
+            __result = false;
+            return false;
+        }
+
+        private static void PatchCaveGeneration(Harmony harmony, MethodInfo prefixMethod)
+        {
+            Type targetType = AccessTools.TypeByName(CaveGenerationTargetTypeName);
             if (targetType == null)
             {
                 Log.Error(
-                    $"[No Caves - Continued] Could not find {TargetTypeName}. " +
+                    $"[No Caves - Continued] Could not find {CaveGenerationTargetTypeName}. " +
                     DescribeDiscoveredCaveTypesAndMethods());
                 return;
             }
 
             List<MethodInfo> targetMethods = AccessTools.GetDeclaredMethods(targetType)
-                .Where(method => method.Name == TargetMethodName)
+                .Where(method => method.Name == CaveGenerationTargetMethodName)
                 .ToList();
 
             if (targetMethods.Count == 0)
             {
                 Log.Error(
-                    $"[No Caves - Continued] Could not find {TargetTypeName}.{TargetMethodName}. " +
+                    $"[No Caves - Continued] Could not find {CaveGenerationTargetTypeName}.{CaveGenerationTargetMethodName}. " +
                     DescribeDiscoveredCaveTypesAndMethods());
                 return;
             }
@@ -55,10 +85,32 @@ namespace NoCavesContinued
             Log.Message($"[No Caves - Continued] Finished patching {targetMethods.Count} cave-generation method(s).");
         }
 
-        public static bool SkipCaveGeneration()
+        private static void PatchCaveChecks(Harmony harmony, MethodInfo prefixMethod)
         {
-            // Returning false from a Harmony prefix skips the original method.
-            return false;
+            Type targetType = AccessTools.TypeByName(CaveCheckTargetTypeName);
+            if (targetType == null)
+            {
+                Log.Error($"[No Caves - Continued] Could not find {CaveCheckTargetTypeName}. Cave checks were not patched.");
+                return;
+            }
+
+            List<MethodInfo> targetMethods = AccessTools.GetDeclaredMethods(targetType)
+                .Where(method => method.Name == CaveCheckTargetMethodName)
+                .ToList();
+
+            if (targetMethods.Count == 0)
+            {
+                Log.Error($"[No Caves - Continued] Could not find {CaveCheckTargetTypeName}.{CaveCheckTargetMethodName}. Cave checks were not patched.");
+                return;
+            }
+
+            foreach (MethodInfo targetMethod in targetMethods)
+            {
+                harmony.Patch(targetMethod, prefix: new HarmonyMethod(prefixMethod));
+                Log.Message($"[No Caves - Continued] Patched {DescribeMethod(targetMethod)}; cave checks will report false.");
+            }
+
+            Log.Message($"[No Caves - Continued] Finished patching {targetMethods.Count} cave-check method(s).");
         }
 
         private static string DescribeMethod(MethodInfo method)
