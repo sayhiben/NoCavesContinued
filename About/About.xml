@@ -18,5 +18,7 @@
   <loadAfter>
     <li>brrainz.harmony</li>
   </loadAfter>
-  <description>Prevents RimWorld's vanilla cave generation utility from carving cave tunnels and suppresses its vanilla cave-map query. Includes RimWorld 1.6 support and a 1.7 alpha candidate pending in-game validation, in respect of kd8lvt's original NoCaves mod and maintenance handoff.</description>
+  <description>Prevents RimWorld's vanilla cave generation utility from carving cave tunnels and suppresses its vanilla cave-map query. Includes RimWorld 1.6 support and a 1.7 alpha candidate pending in-game validation, in respect of kd8lvt's original NoCaves mod and maintenance handoff.
+
+AI assistance: OpenAI Codex was used to write and revise code, tests, documentation, and deployment automation for this continuation's RimWorld 1.7 uplift.</description>
 </ModMetaData>

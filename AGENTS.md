@@ -30,6 +30,7 @@ Leave independent generators alone. Never clear `MapGenerator.Caves`, patch arbi
 - `MIGRATION_STATUS.md` owns dependency versions actually checked, evidence, current test results, and pending gameplay checks.
 - This file owns durable constraints, not repeated command recipes or session history. `CLAUDE.md` delegates here.
 - Preserve input handoffs and their integrity manifests as historical evidence. Exclude them and local inspection artifacts from commits and packages.
+- Preserve the AI-assistance disclosure in README, its generated Workshop description, and the in-game About text. Disclose AI contributions in PR descriptions without implying unperformed human review or gameplay validation.
 
 ## Verification
 

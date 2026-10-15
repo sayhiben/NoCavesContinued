@@ -37,6 +37,10 @@ Generate a new map on a tile known to contain caves and inspect the terrain. The
 
 This continuation is inspired by **NoCaves**, created and maintained by **kd8lvt**. Credit for the original idea, player-facing design, and stewardship belongs to kd8lvt, who stepped away from active development and supported others carrying the work forward.
 
+## AI Assistance
+
+OpenAI Codex was used to write and revise code, tests, documentation, and deployment automation for this continuation's RimWorld 1.7 uplift. Automated checks and pending gameplay validation are described above and in the development documentation.
+
 ## Manual Install
 
 Extract the complete `NoCavesContinued` folder from a release ZIP into RimWorld's `Mods` directory. Keep only one copy enabled and retain both version folders; RimWorld selects the matching payload through `LoadFolders.xml`.
