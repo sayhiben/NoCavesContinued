@@ -1,12 +1,12 @@
 # RimWorld 1.7 migration checkpoint
 
-Updated October 14, 2026 (America/Los_Angeles). The 1.7 payload remains a candidate pending gameplay validation.
+Updated October 15, 2026 (America/Los_Angeles). The 1.7 payload remains a candidate pending gameplay validation.
 
 ## Scope and repository state
 
 The starting folder contained a task brief and handoff ZIP, not a checkout. Handoff integrity checks passed for all 23 files, six baseline Git blobs, and both embedded ZIPs. The maintained repository was fetched at `612630d16799ef326d25f93e55c8b58cf111b294`; the original handoff remains unchanged and excluded from the PR.
 
-Work is on `codex/rimworld-1.7-uplift`. The user authorized a full GitHub PR and automated Workshop deployment on a hosted runner. No merge, live upload, game installation, or listing visibility change has been performed. Existing identity, Workshop item `3735336239`, both patches, kd8lvt credit, and artwork remain intact.
+Work is on `codex/rimworld-1.7-uplift`. The user authorized a full GitHub PR, automated Workshop deployment on a hosted runner, and computer-use gameplay testing. The candidate was temporarily staged locally for isolated testing, with the installed mod backed up first. No merge, live upload, or listing visibility change has been performed. Existing identity, Workshop item `3735336239`, both patches, kd8lvt credit, and artwork remain intact.
 
 ## Design decisions
 
@@ -70,8 +70,25 @@ The GitHub environment `steam-workshop` exists and permits deployment from `main
 
 Mock execution verifies orchestration only. Authentication, token renewal, and a live Workshop upload remain untested. Static cached login may expire or rotate; failure requires interactive reauthorization and replacement of the encrypted state. No password storage, broad secret-writeback token, or plaintext cache was introduced.
 
+## In-game verification on October 15
+
+Computer-use testing exercised candidate commit `db82c9f` in RimWorld **1.6.4871 rev591** (the installed `Version.txt` says rev590), with installed Harmony **2.4.3.0**, Core, and all five official DLC. Other mods were disabled in an isolated save folder. The user's normal mod configuration and preferences retained their original SHA-256 hashes.
+
+The control uses seed `consortium`, 50% coverage, Normal rainfall/temperature/population/landmarks, 5% pollution, and the default factions. Scenario: Crashlanded, Cassandra Classic, Peaceful, reload anytime, ideology inactive. Tile **132336,0**, Doereba's Facade City, is mountainous temperate forest with caves, slate, and sandstone; map size **250 × 250**. Both fresh-generation comparisons use the same saved world and tile through the game's `Regenerate Current Map` developer action. This action replaces only the disposable session map; the original control save remains intact.
+
+| Check | Observed result |
+|---|---|
+| Mod disabled, initial control | Visible winding cave passages; save contains 9 Glowstool and 1 Agarilux |
+| Add candidate and load control save | Existing cave passages remain visible; both prefixes register |
+| Generate fresh map with candidate | Cave passages suppressed; both prefixes log execution, including the false cave-query result; no Glowstool or Agarilux in the result save |
+| Disable candidate, reload original control, repeat generation | Cave passages return; save contains 8 Glowstool and 2 Agarilux |
+
+The native ruins generator reports `GenStep_ScatterGroupPrefabs ... could not find cell to generate at` in **both** regenerated runs. This is a control-reproduced warning, not evidence of a candidate-only failure. Ruins placement varies between generation contexts; this test establishes cave suppression, not identical placement of unrelated objects. The query execution stack reaches `World.HasCaves` from `GenStep_ScatterCaveDebris`.
+
+Local evidence is under `artifacts/gameplay-20261015/`: the three `nocaves-1.6-*.rws` saves in `profile-1.6/Saves`, screenshots and per-session `Player.log` copies in `evidence`, and restoration notes in `RESTORE.txt`. These are excluded from commits and packages. This is one controlled 1.6 tile, not an exhaustive compatibility result.
+
 ## Pending gameplay checks
 
-All new gameplay checks remain **NOT RUN**: ordinary cave suppression and the query on 1.7; fresh 1.6 regression; GL Surface Cave and all four directional Cave Entrances on both versions; existing-map behavior; and the shared asteroid path. There is no installed 1.7 game, and no game deployment was performed. The earlier 1.6 GL report was a visual observation only.
+Still **NOT RUN**: cave suppression and the query on 1.7; GL Surface Cave and all four directional Cave Entrances on both versions; and the shared asteroid path. The earlier 1.6 GL report was a visual observation only. Steam currently offers an `unstable` public-testing branch; installation confirmation is pending before the 1.7 run.
 
-Next action: after approving game deployment, quit RimWorld, back up the old mod outside active Mods folders, and record game/Harmony/GL versions plus seed, tile, map size, scenario, and settings. Generate a disabled control that visibly contains vanilla caves, then restart with the matching candidate and regenerate from the same pre-generation baseline. Check terrain and actual query behavior separately from registration/UI labels. Compare GL interiors, roofs, floors, entrances, exits, and pathing; repeat on 1.6 and observe the asteroid path. Choose a GL build that supports the intended 1.7 game before claiming compatibility. Enable automatic publication only after those checks and secret setup are complete.
+Continue with an isolated 1.7 profile and the same control/candidate procedure. For the remaining GL checks, compare interiors, roofs, floors, entrances, exits, and pathing, using a GL build that supports the game version being tested. Observe the shared asteroid path separately. Enable automatic publication only after the remaining checks and secret setup are complete.

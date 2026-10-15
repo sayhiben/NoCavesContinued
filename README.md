@@ -13,7 +13,7 @@
 - RimWorld 1.6 with Harmony 2, or RimWorld 1.7 with Harmony 3.
 - [Harmony](https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077) loaded before this mod.
 
-The 1.7 payload is an alpha candidate. Automated checks pass; 1.7 gameplay validation and a fresh 1.6 regression test are pending. This is not yet a tested Workshop update.
+The 1.7 payload is an alpha candidate. Automated checks and a controlled 1.6 in-game cave-suppression test pass; 1.7 gameplay validation and broader compatibility checks are pending. This is not yet a tested Workshop update.
 
 ## Steam Workshop Users
 
