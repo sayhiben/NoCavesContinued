@@ -75,7 +75,7 @@ jobs:
           echo "zip_path=$zip_path" >> "$GITHUB_OUTPUT"
 
       - name: Save candidate package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: NoCavesContinued
           path: ${{ steps.package.outputs.zip_path }}
@@ -120,7 +120,7 @@ jobs:
           persist-credentials: false
 
       - name: Download this run's validated release
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: NoCavesContinued
           path: ${{ runner.temp }}/workshop-release
