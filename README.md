@@ -13,7 +13,7 @@
 - RimWorld 1.6 with Harmony 2, or RimWorld 1.7 with Harmony 3.
 - [Harmony](https://steamcommunity.com/sharedfiles/filedetails/?id=2009463077) loaded before this mod.
 
-The 1.7 payload is an alpha candidate. Automated checks and a controlled 1.6 in-game cave-suppression test pass; 1.7 gameplay validation and broader compatibility checks are pending. This is not yet a tested Workshop update.
+The 1.7 payload is an alpha candidate. Automated checks and controlled in-game cave-suppression tests pass on 1.6 and 1.7. Broader compatibility checks remain pending; this candidate has not been published to the Workshop.
 
 ## Steam Workshop Users
 
@@ -25,7 +25,7 @@ Enabling or removing the mod does not alter existing terrain. Only newly generat
 
 ## Compatibility
 
-The mod patches the vanilla cave utility and cave-map query. It leaves independent generators and existing cave grids alone. Mods that use vanilla cave data can still be affected, and other patches can override the query result. The inspected 1.6 utility also serves asteroid generation, so its scope is not limited to colony surface maps.
+The mod patches the vanilla cave utility and cave-map query. It leaves independent generators and existing cave grids alone. Mods that use vanilla cave data can still be affected, and other patches can override the query result. The inspected 1.6 and 1.7 utilities also serve asteroid generation, so their scope is not limited to colony surface maps.
 
 [Geological Landforms](https://github.com/m00nl1ght-dev/GeologicalLandforms) directional cave entrances still contained caves in an earlier 1.6 visual check. Detailed Surface Cave and directional entrance comparisons remain pending. Its 1.7 compatibility has not been established.
 
@@ -39,7 +39,7 @@ This continuation is inspired by **NoCaves**, created and maintained by **kd8lvt
 
 ## AI Assistance
 
-OpenAI Codex was used to write and revise code, tests, documentation, and deployment automation for this continuation's RimWorld 1.7 uplift. Automated checks and pending gameplay validation are described above and in the development documentation.
+OpenAI Codex was used to write and revise code, tests, documentation, and deployment automation, and to operate the game for controlled tests during this continuation's RimWorld 1.7 uplift. Completed checks and remaining gameplay validation are described above and in the development documentation.
 
 ## Manual Install
 
