@@ -4,14 +4,29 @@ on:
   push:
     branches:
       - main
+  pull_request:
+  workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
+  smoke-legacy:
+    name: Harmony 2 smoke tests on .NET Framework
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet run --project Tests/Smoke -c Release -f net472
+
   build-release:
     name: Build and release
+    needs: smoke-legacy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Check out repository
@@ -20,7 +35,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 8.0.x
+          dotnet-version: 10.0.x
 
       - name: Restore
         run: dotnet restore Source/NoCavesContinued.csproj
@@ -28,90 +43,46 @@ jobs:
       - name: Build
         run: dotnet build Source/NoCavesContinued.csproj -c Release --no-restore
 
+      - name: Verify behavior, reference contracts, and payload rules
+        run: |
+          dotnet run --project Tests/Smoke -c Release -f net10.0
+          dotnet run --project Tests/Contracts -c Release
+          python3 -m unittest discover -s Tests -p 'test_*.py' -v
+
       - name: Generate Steam Workshop description
         shell: bash
         run: |
           set -euo pipefail
 
           python3 -m venv "$RUNNER_TEMP/md2steam-venv"
-          "$RUNNER_TEMP/md2steam-venv/bin/python" -m pip install --upgrade pip
           "$RUNNER_TEMP/md2steam-venv/bin/python" -m pip install md2steam==1.0.1
           "$RUNNER_TEMP/md2steam-venv/bin/python" \
             scripts/generate-steam-workshop-description.py \
             README.md \
             "$RUNNER_TEMP/SteamWorkshopDescription.txt"
 
-      - name: Package mod
+      - name: Package and validate mod
         id: package
         shell: bash
         run: |
           set -euo pipefail
 
-          package_root="$RUNNER_TEMP/package"
-          mod_root="$package_root/NoCavesContinued"
           zip_path="$GITHUB_WORKSPACE/NoCavesContinued-${GITHUB_RUN_NUMBER}.zip"
+          python3 scripts/package_mod.py \
+            --description "$RUNNER_TEMP/SteamWorkshopDescription.txt" \
+            --output "$zip_path"
 
-          rm -rf "$package_root" "$zip_path"
-          mkdir -p "$mod_root"
+          echo "zip_path=$zip_path" >> "$GITHUB_OUTPUT"
 
-          cp -R About "$mod_root/"
-          cp -R 1.6 "$mod_root/"
-          cp LoadFolders.xml "$mod_root/"
-          cp README.md "$mod_root/"
-          cp "$RUNNER_TEMP/SteamWorkshopDescription.txt" "$mod_root/"
-
-          (
-            cd "$package_root"
-            zip -r "$zip_path" NoCavesContinued
-          )
-
-          {
-            echo "zip_path=$zip_path"
-            echo "zip_name=$(basename "$zip_path")"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Validate package
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          zip_path="${{ steps.package.outputs.zip_path }}"
-          extract_root="$RUNNER_TEMP/package-validation"
-
-          rm -rf "$extract_root"
-          mkdir -p "$extract_root"
-          unzip -q "$zip_path" -d "$extract_root"
-
-          required_paths=(
-            "NoCavesContinued/About/About.xml"
-            "NoCavesContinued/LoadFolders.xml"
-            "NoCavesContinued/1.6/Assemblies/NoCavesContinued.dll"
-            "NoCavesContinued/README.md"
-            "NoCavesContinued/SteamWorkshopDescription.txt"
-          )
-
-          for path in "${required_paths[@]}"; do
-            if [[ ! -e "$extract_root/$path" ]]; then
-              echo "Release zip is missing required file: $path" >&2
-              exit 1
-            fi
-          done
-
-          forbidden_paths=(
-            "NoCavesContinued/.git"
-            "NoCavesContinued/.github"
-            "NoCavesContinued/Source"
-            "NoCavesContinued/AGENTS.md"
-          )
-
-          for path in "${forbidden_paths[@]}"; do
-            if [[ -e "$extract_root/$path" ]]; then
-              echo "Release zip includes non-distribution path: $path" >&2
-              exit 1
-            fi
-          done
+      - name: Save candidate package
+        uses: actions/upload-artifact@v7
+        with:
+          name: NoCavesContinued
+          path: ${{ steps.package.outputs.zip_path }}
+          overwrite: true
 
       - name: Create GitHub release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -122,8 +93,58 @@ jobs:
           title="No Caves - Continued build ${GITHUB_RUN_NUMBER}"
           notes="Automated release from main branch commit ${GITHUB_SHA}."
 
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          if [[ "$current_main" != "$GITHUB_SHA" ]]; then
+            echo "Refusing to mark an outdated main commit as the latest release." >&2
+            exit 1
+          fi
           gh release create "$tag" "${{ steps.package.outputs.zip_path }}" \
             --target "$GITHUB_SHA" \
             --title "$title" \
             --notes "$notes" \
             --latest
+
+  deploy-workshop:
+    name: Deploy the tested release to Steam Workshop
+    needs: build-release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.STEAM_WORKSHOP_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment: steam-workshop
+    timeout-minutes: 20
+    concurrency:
+      group: steam-workshop
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Download this run's validated release
+        uses: actions/download-artifact@v8
+        with:
+          name: NoCavesContinued
+          path: ${{ runner.temp }}/workshop-release
+
+      - name: Install SteamCMD system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y lib32gcc-s1 lib32stdc++6
+
+      - name: Refuse an outdated main commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          current_main="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/heads/main" --jq .object.sha)"
+          if [[ "$current_main" != "$GITHUB_SHA" ]]; then
+            echo "Refusing to replace Steam Workshop content with an outdated main commit." >&2
+            exit 1
+          fi
+
+      - name: Publish existing Workshop item
+        env:
+          STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+          STEAM_CONFIG_VDF: ${{ secrets.STEAM_CONFIG_VDF }}
+        run: |
+          bash scripts/deploy-steam-workshop.sh \
+            "$RUNNER_TEMP/workshop-release/NoCavesContinued-${GITHUB_RUN_NUMBER}.zip" \
+            "Update from GitHub release build-${GITHUB_RUN_NUMBER} (${GITHUB_SHA})."

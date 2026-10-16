@@ -1,19 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFrameworks>net472;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
     <Nullable>disable</Nullable>
     <AssemblyName>NoCavesContinued</AssemblyName>
     <RootNamespace>NoCavesContinued</RootNamespace>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-    <OutputPath>../1.6/Assemblies/</OutputPath>
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <OutputPath Condition="'$(TargetFramework)' == 'net472'">../1.6/Assemblies/</OutputPath>
+    <OutputPath Condition="'$(TargetFramework)' == 'net10.0'">../1.7/Assemblies/</OutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <SuppressImplicitGitSourceLink>true</SuppressImplicitGitSourceLink>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" PrivateAssets="all" />
     <PackageReference Include="Lib.Harmony.Ref" Version="2.4.2" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="Krafs.Rimworld.Ref" Version="1.7.4977-alpha.2" PrivateAssets="all" />
+    <PackageReference Include="Lib.Harmony.Ref" Version="3.0.0-rc.2" PrivateAssets="all" />
   </ItemGroup>
 </Project>

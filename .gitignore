@@ -34,4 +34,8 @@ __pycache__/
 *.tar
 *.tar.gz
 
-# Keep RimWorld distribution assemblies tracked under 1.6/Assemblies/.
+# Local verification tools and staged packages
+.tools/
+artifacts/
+
+# Keep RimWorld distribution assemblies tracked under 1.6/Assemblies/ and 1.7/Assemblies/.
