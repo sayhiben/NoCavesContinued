@@ -25,9 +25,9 @@ Enabling or removing the mod does not alter existing terrain. Only newly generat
 
 ## Compatibility
 
-The mod patches the vanilla cave utility and cave-map query. It leaves independent generators and existing cave grids alone. Mods that use vanilla cave data can still be affected, and other patches can override the query result. The inspected 1.6 and 1.7 utilities also serve asteroid generation, so their scope is not limited to colony surface maps.
+The mod patches the vanilla cave utility and cave-map query. It leaves independent generators and existing cave grids alone. Mods that use vanilla cave data can still be affected, and other patches can override the query result. The shared utility also serves asteroid generation: controlled tests on 1.6 and 1.7 found that this mod fills some asteroid passages with rock or ore.
 
-[Geological Landforms](https://github.com/m00nl1ght-dev/GeologicalLandforms) directional cave entrances still contained caves in an earlier 1.6 visual check. Detailed Surface Cave and directional entrance comparisons remain pending. Its 1.7 compatibility has not been established.
+[Geological Landforms](https://github.com/m00nl1ght-dev/GeologicalLandforms) Surface Cave and all four directional Cave Entrances retained visible cave networks and matching natural roofs in controlled comparisons on 1.6 and 1.7. Floors and some objects differed. A representative Surface Cave pawn walk passed on each version, and selected outdoor-to-interior reachability checks passed for all four 1.7 candidate entrances. This is limited coverage, not a guarantee of every passage or unchanged cave shape. The tested GL mod version, 1.7.13.1, advertises RimWorld support only through 1.6; its use on 1.7 remains experimental.
 
 ## In-Game Check
 

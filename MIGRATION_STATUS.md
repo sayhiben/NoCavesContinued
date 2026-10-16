@@ -1,6 +1,6 @@
 # RimWorld 1.7 migration checkpoint
 
-Updated October 15, 2026 (America/Los_Angeles). Controlled cave-suppression tests pass on 1.6 and 1.7; the 1.7 alpha candidate still needs broader compatibility checks.
+Updated October 16, 2026 (America/Los_Angeles). Controlled ordinary-cave, Geological Landforms, and asteroid comparisons have run on 1.6 and 1.7. Coverage and remaining checks are bounded below; the 1.7 payload remains an alpha candidate.
 
 ## Scope and repository state
 
@@ -37,13 +37,15 @@ instance bool RimWorld.Planet.World.HasCaves(RimWorld.Planet.PlanetTile)
 
 The installed utilities in both versions create open/closed tunnels from rock groups. Their direct callers include `TileMutatorWorker_Caves.GenerateCaves` and `GenStep_Asteroid.GenerateCaveElevation`. `World.HasCaves` checks mutator `IsCave`; direct callers include the debug cave-map selector, ancient-turret generation, and cave-debris generation. Method-body inspection and metadata checks establish broader-than-colony scope, not an exhaustive dynamic call graph. The inspected 1.7 game assembly SHA-256 is `eff7d97949f919fb2b151ebfb906e9be749b63410b7dbda78eeebb7972b245c3`.
 
-In-game tests used installed Harmony **2.4.3.0** for 1.6 and **3.0.1.0** for 1.7; smoke tests use the pinned NuGet versions above. Installed Geological Landforms reports **mod version 1.7.13.1**, but advertises game support only through **RimWorld 1.6**. Its cave input reads `MapGenerator.Caves`, so independent landforms can still consume vanilla cave data.
+In-game tests used installed Harmony **2.4.3.0** for 1.6 and Harmony mod **3.0.1.0**, library **3.0.0.0-rc.3**, for 1.7; smoke tests use the pinned NuGet versions above. Installed Geological Landforms reports **mod version 1.7.13.1**, but advertises game support only through **RimWorld 1.6**. Its cave input reads `MapGenerator.Caves`, so independent landforms can still consume vanilla cave data.
 
 ## Verification evidence
 
 The original baseline build first failed with NU1101 because the machine had only offline feeds. Restoring from NuGet fixed it before source edits. Repository `NuGet.Config` now supplies that feed without changing machine settings.
 
 Current local results:
+
+The October 16 documentation-only update reran all 21 Python tests, regenerated and inspected the Steam description with the existing md2steam environment, recreated/validated the ZIP, and passed `git diff --check`. Runtime binaries are unchanged from the previously tested build.
 
 | Check | Result |
 |---|---|
@@ -107,12 +109,47 @@ The cave utility execution stack reaches `TileMutatorWorker_Caves.GenerateCaves`
 
 Local evidence shares the directory above: `profile-1.7/Saves/nocaves-1.7-{control,candidate,control-repeat}.rws`, the untouched `c.rws`, screenshots, three session logs, installed-assembly contract output, and local method-body inspection under `evidence`. These tests establish ordinary cave suppression and exercise the query on one controlled tile per version; they do not establish all modded-map behavior.
 
-### Restoration
+## Geological Landforms and asteroid checks on October 15–16
+
+Computer-use tests used the unchanged runtime at `4f762e3`, isolated profiles, Harmony, Core, all five DLC, Geological Landforms **1.7.13.1**, and Map Preview **1.12.26.1** (Lunar Framework **1.1.17**). On **1.7.4980 rev60**, GL and Map Preview displayed unsupported-version warnings and used their existing 1.6 payloads. GL nevertheless loaded 44 landforms and generated all five selected cases. These experimental results do not establish official GL 1.7 support.
+
+### Geological Landforms
+
+All comparisons use world seed **`shoe`**, 30% coverage, tile **27128,0**, **250 × 250**, boreal forest with granite/sandstone, and the native GL developer override. Surface Cave uses Inland topology, East (L), depth 0; Cave Entrance uses North/East/South/West (L), depth 1. Candidate/control pairs preserve these settings. The 1.7 tests start from copies of the same saved 1.6 worlds, then regenerate fresh controls and candidates inside 1.7. Comparisons below are within each game version.
+
+| Case | 1.6 candidate versus control | 1.7 candidate versus control |
+|---|---|---|
+| Surface Cave | Visible cave network retained; natural roofs match | Same bounded result |
+| North Cave Entrance | Visible cave network retained; natural roofs match | Same bounded result |
+| East Cave Entrance | Visible cave network retained; natural roofs match | Same bounded result |
+| South Cave Entrance | Visible cave network retained; natural roofs match | Same bounded result |
+| West Cave Entrance | Visible cave network retained; natural roofs match | Same bounded result |
+
+Decoded saved-map grids confirm identical natural-roof cells for every pair. Constructed roofs differ at 7 East / 3 West cells in 1.6 and 5 East / 15 West cells in 1.7. Top-terrain grids differ at 353–490 cells in 1.6 and 352–437 in 1.7; compressed thing grids also differ, including local rock/ore, chunks, and ruins. Foundation grids match. These differences prevent a claim of identical floors, obstructions, or complete cave shape; their full attribution has not been established.
+
+A drafted pawn traversed the selected central-to-northern Surface Cave passage in each candidate version. In 1.7, the game's live `Check Reachability` tool returned green for an outdoor approach to an interior point on each of the four candidate entrance maps, using `NoPassClosedDoors`, `PathEndMode.OnCell`, and `Danger.Deadly`. This checks selected connectivity without mining or passing closed doors; it is not a pawn walk through every passage, an exit/evacuation test, or a safety check against insects. Equivalent directional reachability checks in 1.6 and paired control pathing were not completed before the user requested wrap-up.
+
+No GL generation exception was observed in these sessions. One 1.7 `CreateColonistDuplicate` developer action on an empty regenerated map raised `ArgumentOutOfRangeException`; the ordinary `Spawn pawn > Colonist` action then worked and supplied the walking-test pawn. The duplicate-action exception was not reproduced in a disabled control, so it is recorded separately rather than classified as a proven mod-independent error. Previously noted load/engine warnings also occurred in controls.
+
+### Asteroid caller
+
+Both versions use seed **`tuque`**, orbit tile **285,1**, **Unithlior Moon** (world-object ID 103), generator **`AsteroidBasic`**, and **200 × 200**. The native orbit developer Generate action established the initial map; subsequent comparisons reload the saved control and use `Regenerate Current Map`. Both candidate session logs show `SkipCaveGeneration` executing through `GenStep_Asteroid.GenerateCaveElevation`.
+
+| Check | 1.6 | 1.7 |
+|---|---|---|
+| Disabled control versus candidate | Some visible passages fill with rock/ore | Same observed effect |
+| Compressed thing-grid differences | 476 cells; net 294 additional occupied rock/ore cells | 476 cells; net 294 additional occupied rock/ore cells |
+| Roof, top/under terrain, foundation grids | Identical | Identical |
+| Disable and regenerate again | All five compared grids return exactly to the original control | Not completed before wrap-up |
+
+In each candidate, 301 previously empty cells become rock/ore and 7 change in the reverse direction; other changed cells exchange rock and ore. This is a confirmed consequence of the existing shared utility patch, not a new asteroid-specific patch. Landing, gravship movement, resource balance, and long-running orbital play were not tested.
+
+Evidence is retained locally under `artifacts/compat-gameplay-20261015/`: paired `gl-{surface,north,east,south,west}-{control,candidate}.rws` and asteroid saves in each version's profile, screenshots, session logs, `evidence/grid-comparisons.json`, and restoration manifests. The 1.6 asteroid also has a `control-repeat` save. Raw game data, logs, screenshots, and inspection artifacts remain excluded from commits and packages. No runtime change was required by these observations.
+
+## Restoration
 
 Steam is back on the default `public` branch, **1.6.4871 rev590**, build **23969874**, with empty launch options. The restored executable and game assembly match the pre-test backup. Every original Workshop-mod file, normal `ModsConfig.xml`, and normal `Prefs.xml` matches its saved hash. Candidate copies, isolated test saves, and the game backup remain outside the active game installation. No user colony save was loaded, and no Workshop upload was performed.
 
 ## Pending gameplay checks
 
-Still **NOT RUN**: GL Surface Cave and all four directional Cave Entrances on both versions, and the shared asteroid path. The earlier 1.6 GL report was a visual observation only; a GL build supporting RimWorld 1.7 has not been established.
-
-For the remaining GL checks, compare interiors, roofs, floors, entrances, exits, and pathing, using a GL build that supports the game version being tested. Observe the shared asteroid path separately. Enable automatic publication only after the remaining checks and secret setup are complete.
+Remaining: paired directional pathing on 1.6 and control pathing on both versions; full entrance/exit and cave-shape coverage across additional seeds and supported GL builds; the 1.7 asteroid disabled repeat and orbital gameplay. The GL generation matrix and asteroid caller have been exercised, with the limits above. Live Workshop authentication/upload also remain untested; deployment stays disabled pending release readiness and secret setup.

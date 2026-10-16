@@ -11,7 +11,7 @@ No Caves - Continued has two fixed Harmony prefixes, shared by its RimWorld 1.6 
 
 Keep author `sayhiben`, package/Harmony ID `sayhiben.nocavescontinued`, assembly `NoCavesContinued.dll`, Workshop item `3735336239`, existing artwork, and kd8lvt credit stable. Archived Redux sources are not the maintained implementation.
 
-Leave independent generators alone. Never clear `MapGenerator.Caves`, patch arbitrary cave-named types, or imply this blocks every modded cave system. The inspected utilities in both versions have an asteroid caller. Historical Geological Landforms observations are limited; neither its 1.7 compatibility nor full cave access/shape has been established.
+Leave independent generators alone. Never clear `MapGenerator.Caves`, patch arbitrary cave-named types, or imply this blocks every modded cave system. The shared utility also affects asteroid generation. Keep Geological Landforms compatibility and cave access/shape claims bounded by the versions and cases recorded in `MIGRATION_STATUS.md`; a successful experimental run does not establish official game-version support.
 
 ## Design and editing
 
